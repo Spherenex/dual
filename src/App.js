@@ -1,383 +1,12 @@
-// import { useState, useEffect } from 'react';
-// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-// import { Activity, Heart, Thermometer, Droplet, PieChart } from 'lucide-react';
-
-// // Import the CSS file
-// import './App.css';
-
-// // Initialize Firebase at the component level
-// const HealthDashboard = () => {
-//   // State for health data and history
-//   const [healthData, setHealthData] = useState({
-//     Diastolic: 0,
-//     Heart_Rate: 0,
-//     SpO2: 0,
-//     Systolic: 0,
-//     Temperature: 0
-//   });
-  
-//   const [historyData, setHistoryData] = useState({
-//     Diastolic: [],
-//     Heart_Rate: [],
-//     SpO2: [],
-//     Systolic: [],
-//     Temperature: []
-//   });
-  
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-
-//   useEffect(() => {
-//     // Firebase configuration from user
-//     const firebaseConfig = {
-//       apiKey: "AIzaSyB9ererNsNonAzH0zQo_GS79XPOyCoMxr4",
-//       authDomain: "waterdtection.firebaseapp.com",
-//       databaseURL: "https://waterdtection-default-rtdb.firebaseio.com",
-//       projectId: "waterdtection",
-//       storageBucket: "waterdtection.firebasestorage.app",
-//       messagingSenderId: "690886375729",
-//       appId: "1:690886375729:web:172c3a47dda6585e4e1810",
-//       measurementId: "G-TXF33Y6XY0"
-//     };
-
-//     // Import Firebase dynamically
-//     const loadFirebase = async () => {
-//       try {
-//         // Dynamic imports
-//         const firebaseApp = await import('firebase/app');
-//         const firebaseDatabase = await import('firebase/database');
-
-//         // Initialize Firebase
-//         const app = firebaseApp.initializeApp(firebaseConfig);
-//         const database = firebaseDatabase.getDatabase(app);
-//         const healthRef = firebaseDatabase.ref(database, 'Health_Monitor');
-
-//         // Listen for changes to the health data
-//         firebaseDatabase.onValue(healthRef, (snapshot) => {
-//           const data = snapshot.val();
-//           if (data) {
-//             setHealthData(data);
-            
-//             // Update history data with timestamp
-//             const timestamp = new Date().toLocaleTimeString();
-//             setHistoryData(prevHistory => {
-//               const newHistory = { ...prevHistory };
-              
-//               // For each health metric, add new data point to its history array
-//               Object.keys(data).forEach(key => {
-//                 // Keep only the last 20 data points
-//                 const updatedHistory = [...(prevHistory[key] || []), {
-//                   time: timestamp,
-//                   value: parseFloat(data[key])
-//                 }].slice(-20);
-                
-//                 newHistory[key] = updatedHistory;
-//               });
-              
-//               return newHistory;
-//             });
-            
-//             setLoading(false);
-//           }
-//         }, (error) => {
-//           setError(`Error fetching data: ${error.message}`);
-//           setLoading(false);
-//         });
-        
-//         return () => {
-//           // Clean up listeners
-//           firebaseDatabase.off(healthRef);
-//         };
-//       } catch (error) {
-//         setError(`Failed to initialize Firebase: ${error.message}`);
-//         setLoading(false);
-//       }
-//     };
-
-//     loadFirebase();
-//   }, []);
-
-//   // No simulation - only update when Firebase values change
-//   // We'll keep track of real changes from Firebase only
-
-//   // Helper function to determine status color based on values
-//   const getStatusColor = (metric, value) => {
-//     const numValue = parseFloat(value);
-    
-//     switch(metric) {
-//       case 'Heart_Rate':
-//         return numValue < 60 ? 'text-blue-500' : 
-//                numValue > 100 ? 'text-red-500' : 'text-green-500';
-//       case 'SpO2':
-//         return numValue < 90 ? 'text-red-500' : 
-//                numValue < 95 ? 'text-yellow-500' : 'text-green-500';
-//       case 'Systolic':
-//         return numValue > 140 ? 'text-red-500' : 
-//                numValue > 120 ? 'text-yellow-500' : 'text-green-500';
-//       case 'Diastolic':
-//         return numValue > 90 ? 'text-red-500' : 
-//                numValue > 80 ? 'text-yellow-500' : 'text-green-500';
-//       case 'Temperature':
-//         return numValue > 37.5 ? 'text-red-500' : 
-//                numValue < 36 ? 'text-blue-500' : 'text-green-500';
-//       default:
-//         return 'text-gray-500';
-//     }
-//   };
-  
-//   // Helper function to get icon for each metric
-//   const getMetricIcon = (metric) => {
-//     switch(metric) {
-//       case 'Heart_Rate':
-//         return <Heart className="w-8 h-8 text-red-500" />;
-//       case 'SpO2':
-//         return <Activity className="w-8 h-8 text-blue-500" />;
-//       case 'Systolic':
-//       case 'Diastolic':
-//         return <Droplet className="w-8 h-8 text-purple-500" />;
-//       case 'Temperature':
-//         return <Thermometer className="w-8 h-8 text-amber-500" />;
-//       default:
-//         return <PieChart className="w-8 h-8 text-gray-500" />;
-//     }
-//   };
-  
-//   // Helper function to get display name for each metric
-//   const getMetricDisplayName = (metric) => {
-//     switch(metric) {
-//       case 'Heart_Rate':
-//         return 'Heart Rate';
-//       case 'SpO2':
-//         return 'Oxygen Saturation';
-//       case 'Systolic':
-//         return 'Systolic BP';
-//       case 'Diastolic':
-//         return 'Diastolic BP';
-//       case 'Temperature':
-//         return 'Temperature';
-//       default:
-//         return metric;
-//     }
-//   };
-  
-//   // Helper function to get units for each metric
-//   const getMetricUnit = (metric) => {
-//     switch(metric) {
-//       case 'Heart_Rate':
-//         return 'bpm';
-//       case 'SpO2':
-//         return '%';
-//       case 'Systolic':
-//       case 'Diastolic':
-//         return 'mmHg';
-//       case 'Temperature':
-//         return '°C';
-//       default:
-//         return '';
-//     }
-//   };
-  
-//   // Helper function to get line color for each metric
-//   const getLineColor = (metric) => {
-//     switch(metric) {
-//       case 'Heart_Rate':
-//         return '#ef4444';
-//       case 'SpO2':
-//         return '#3b82f6';
-//       case 'Systolic':
-//         return '#8b5cf6';
-//       case 'Diastolic':
-//         return '#a855f7';
-//       case 'Temperature':
-//         return '#f59e0b';
-//       default:
-//         return '#6b7280';
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="loading-container">
-//         <div className="loading-content">
-//           <div className="spinner"></div>
-//           <p className="loading-text">Loading health data...</p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="error-container">
-//         <div className="error-content">
-//           <div className="error-icon-container">
-//             <svg xmlns="http://www.w3.org/2000/svg" className="error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-//             </svg>
-//           </div>
-//           <h2 className="error-title">Connection Error</h2>
-//           <p className="error-message">{error}</p>
-//           <button 
-//             onClick={() => window.location.reload()} 
-//             className="retry-button"
-//           >
-//             Try Again
-//           </button>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="dashboard-container">
-//       <div className="container">
-//         <header className='dashboard-header'>
-//           <h1>Health Monitoring Dashboard</h1>
-//           <p>Real-time health metrics from Firebase</p>
-//           <div className="last-updated">
-//             <span className="live-indicator"></span>
-//             Last updated: {new Date().toLocaleString()}
-//           </div>
-//         </header>
-        
-//         {/* Current Values Section */}
-//         <div style={{marginBottom: '2.5rem'}}>
-//           <h2 className="section-title">Current Health Metrics</h2>
-//           <div className="metrics-grid">
-//             {Object.keys(healthData).map(metric => (
-//               <div key={metric} className="card glass-card">
-//                 <div className="card-body">
-//                   <div className="metric-header">
-//                     <div className="metric-title">
-//                       <div className="metric-icon">
-//                         {getMetricIcon(metric)}
-//                       </div>
-//                       <h3>{getMetricDisplayName(metric)}</h3>
-//                     </div>
-//                     <span className={`status-badge ${
-//                       getStatusColor(metric, healthData[metric]) === 'text-green-500' ? 'status-normal' :
-//                       getStatusColor(metric, healthData[metric]) === 'text-yellow-500' ? 'status-elevated' :
-//                       getStatusColor(metric, healthData[metric]) === 'text-red-500' ? 'status-high' :
-//                       getStatusColor(metric, healthData[metric]) === 'text-blue-500' ? 'status-low' : ''
-//                     }`}>
-//                       {
-//                         getStatusColor(metric, healthData[metric]) === 'text-green-500' ? 'Normal' :
-//                         getStatusColor(metric, healthData[metric]) === 'text-yellow-500' ? 'Elevated' :
-//                         getStatusColor(metric, healthData[metric]) === 'text-red-500' ? 'High' :
-//                         getStatusColor(metric, healthData[metric]) === 'text-blue-500' ? 'Low' : 'N/A'
-//                       }
-//                     </span>
-//                   </div>
-                  
-//                   <div className="metric-value-container">
-//                     <span className={`metric-value ${
-//                       getStatusColor(metric, healthData[metric]) === 'text-green-500' ? 'value-normal' :
-//                       getStatusColor(metric, healthData[metric]) === 'text-yellow-500' ? 'value-elevated' :
-//                       getStatusColor(metric, healthData[metric]) === 'text-red-500' ? 'value-high' :
-//                       getStatusColor(metric, healthData[metric]) === 'text-blue-500' ? 'value-low' : ''
-//                     }`}>
-//                       {parseFloat(healthData[metric]).toFixed(metric === 'Temperature' ? 1 : 0)}
-//                     </span>
-//                     <span className="metric-unit">{getMetricUnit(metric)}</span>
-//                   </div>
-                  
-//                   {/* Mini sparkline chart */}
-//                   <div className="sparkline-container">
-//                     {historyData[metric] && historyData[metric].length > 0 ? (
-//                       <ResponsiveContainer width="100%" height="100%">
-//                         <LineChart data={historyData[metric]}>
-//                           <Line 
-//                             type="monotone" 
-//                             dataKey="value" 
-//                             stroke={getLineColor(metric)} 
-//                             strokeWidth={2}
-//                             dot={false}
-//                             isAnimationActive={true}
-//                             className={`${metric.toLowerCase()}-line`}
-//                           />
-//                         </LineChart>
-//                       </ResponsiveContainer>
-//                     ) : (
-//                       <div className="no-data">
-//                         No data available
-//                       </div>
-//                     )}
-//                   </div>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-        
-//         {/* Detailed Graphs Section */}
-//         <div>
-//           <h2 className="section-title">Detailed Trends</h2>
-//           <div className="trends-grid">
-//             {Object.keys(healthData).map(metric => (
-//               <div key={`graph-${metric}`} className="chart-card">
-//                 <h3 className="chart-title">
-//                   {getMetricDisplayName(metric)} Trend
-//                 </h3>
-                
-//                 <div className="chart-container">
-//                   {historyData[metric] && historyData[metric].length > 0 ? (
-//                     <ResponsiveContainer width="100%" height="100%">
-//                       <LineChart 
-//                         data={historyData[metric]}
-//                         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-//                       >
-//                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-//                         <XAxis 
-//                           dataKey="time" 
-//                           tick={{ fontSize: 12 }} 
-//                           tickFormatter={(tick) => tick.split(':').slice(-2).join(':')}
-//                         />
-//                         <YAxis domain={['auto', 'auto']} />
-//                         <Tooltip 
-//                           formatter={(value) => [`${value.toFixed(metric === 'Temperature' ? 1 : 0)} ${getMetricUnit(metric)}`, getMetricDisplayName(metric)]}
-//                           labelFormatter={(label) => `Time: ${label}`}
-//                         />
-//                         <Line 
-//                           type="monotone" 
-//                           dataKey="value" 
-//                           stroke={getLineColor(metric)} 
-//                           strokeWidth={3}
-//                           dot={{ fill: getLineColor(metric), r: 4 }}
-//                           activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }}
-//                           isAnimationActive={true}
-//                           className={`${metric.toLowerCase()}-line`}
-//                         />
-//                       </LineChart>
-//                     </ResponsiveContainer>
-//                   ) : (
-//                     <div className="no-data">
-//                       No trend data available yet
-//                     </div>
-//                   )}
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-        
-//         {/* Footer */}
-//         <footer>
-//           <p>Health Monitoring Dashboard - Connected to Firebase Realtime Database</p>
-//           <p>Data updates automatically as values change in the database</p>
-//         </footer>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default HealthDashboard;
 
 
 
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { Zap, Activity, Wifi, WifiOff } from 'lucide-react';
-import './Dual.css';
+import { Zap, Activity, Wifi, WifiOff, Battery, BatteryCharging, Sun } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, onValue, off } from 'firebase/database';
+import './App.css';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -391,6 +20,10 @@ const firebaseConfig = {
   measurementId: "G-TXF33Y6XY0"
 };
 
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
 const Dashboard = () => {
   const [currentValue, setCurrentValue] = useState(0);
   const [voltageValue, setVoltageValue] = useState(0);
@@ -398,60 +31,122 @@ const Dashboard = () => {
   const [voltageHistory, setVoltageHistory] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [connectionError, setConnectionError] = useState(null);
+  const [batteryLevel, setBatteryLevel] = useState(90);
+  const [isCharging, setIsCharging] = useState(false);
+  const [sunPosition, setSunPosition] = useState(50);
 
+  // State for current time
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Calculate sun position based on time of day
   useEffect(() => {
-    // Initialize Firebase
-    const initFirebase = async () => {
-      try {
-        // Import Firebase modules dynamically
-        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
-        const { getDatabase, ref, onValue, off } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
-        
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        
-        // Reference to the Dual_Axis data
-        const dataRef = ref(database, 'Dual_Axis');
-        
-        // Set up real-time listener
-        const unsubscribe = onValue(dataRef, (snapshot) => {
-          const data = snapshot.val();
-          if (data) {
-            const current = parseFloat(data.Current) || 0;
-            const voltage = parseFloat(data.Voltage) || 0;
-            const timestamp = new Date().toLocaleTimeString();
-            
-            setCurrentValue(current);
-            setVoltageValue(voltage);
-            setLastUpdate(new Date());
-            setIsConnected(true);
-            
-            // Update history (keep last 20 points)
-            setCurrentHistory(prev => {
-              const newHistory = [...prev, { time: timestamp, value: current }];
-              return newHistory.slice(-20);
-            });
-            
-            setVoltageHistory(prev => {
-              const newHistory = [...prev, { time: timestamp, value: voltage }];
-              return newHistory.slice(-20);
-            });
-          }
-        }, (error) => {
-          console.error('Firebase connection error:', error);
-          setIsConnected(false);
-        });
-        
-        // Cleanup function
-        return () => off(dataRef, unsubscribe);
-      } catch (error) {
-        console.error('Failed to initialize Firebase:', error);
-        setIsConnected(false);
+    const updateTimeAndPosition = () => {
+      const now = new Date();
+      setCurrentTime(now);
+      
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const totalMinutes = hours * 60 + minutes;
+      
+      // Sunrise at 6:30 (390 minutes) and sunset at 18:45 (1125 minutes)
+      const sunrise = 390;
+      const sunset = 1125;
+      const dayLength = sunset - sunrise;
+      
+      // Calculate position percentage
+      if (totalMinutes < sunrise) {
+        setSunPosition(0);
+      } else if (totalMinutes > sunset) {
+        setSunPosition(100);
+      } else {
+        setSunPosition(((totalMinutes - sunrise) / dayLength) * 100);
       }
     };
-
-    initFirebase();
+    
+    updateTimeAndPosition();
+    const interval = setInterval(updateTimeAndPosition, 1000); // Update every second
+    
+    return () => clearInterval(interval);
   }, []);
+
+  const [batteryHistory, setBatteryHistory] = useState([]);
+
+  useEffect(() => {
+    // Reference to the Dual_Axis data
+    const dataRef = ref(database, 'Dual_Axis');
+    
+    // Set up real-time listener
+    const unsubscribe = onValue(dataRef, (snapshot) => {
+      try {
+        const data = snapshot.val();
+        if (data) {
+          const current = parseFloat(data.Current) || 0;
+          const voltage = parseFloat(data.Voltage) || 0;
+          const timestamp = new Date().toLocaleTimeString();
+          
+          setCurrentValue(current);
+          setVoltageValue(voltage);
+          setLastUpdate(new Date());
+          setIsConnected(true);
+          setConnectionError(null);
+          
+          // Update battery charging state - both current AND voltage must be above 8
+          const isChargingNow = current > 8 && voltage > 8;
+          setIsCharging(isChargingNow);
+          
+          // Simulate battery level changes and update history in a single operation
+          // to avoid dependency loops
+          setBatteryLevel(prevLevel => {
+            let newLevel;
+            if (isChargingNow) {
+              newLevel = Math.min(prevLevel + 0.5, 100);
+            } else if (prevLevel > 0) {
+              newLevel = Math.max(prevLevel - 0.1, 0);
+            } else {
+              newLevel = prevLevel;
+            }
+            
+            // Update battery history with the new level
+            setBatteryHistory(prev => {
+              const newHistory = [...prev, { time: timestamp, value: newLevel }];
+              return newHistory.slice(-20);
+            });
+            
+            return newLevel;
+          });
+          
+          // Update history (keep last 20 points)
+          setCurrentHistory(prev => {
+            const newHistory = [...prev, { time: timestamp, value: current }];
+            return newHistory.slice(-20);
+          });
+          
+          setVoltageHistory(prev => {
+            const newHistory = [...prev, { time: timestamp, value: voltage }];
+            return newHistory.slice(-20);
+          });
+        }
+      } catch (error) {
+        console.error('Error processing Firebase data:', error);
+        setConnectionError(error.message);
+      }
+    }, (error) => {
+      console.error('Firebase connection error:', error);
+      setIsConnected(false);
+      setConnectionError(error.message);
+    });
+
+    // Initial connection status
+    setIsConnected(true);
+    
+    // Cleanup function
+    return () => {
+      if (unsubscribe) {
+        off(dataRef, unsubscribe);
+      }
+    };
+  }, []); // Remove dependency on batteryLevel to prevent infinite loops
 
   const formatTime = (timeStr) => {
     return timeStr.split(':').slice(1).join(':');
@@ -496,6 +191,285 @@ const Dashboard = () => {
                 Last update: {lastUpdate.toLocaleTimeString()}
               </span>
             )}
+            {connectionError && (
+              <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.5rem' }}>
+                Error: {connectionError}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Solar Tracking */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '1.5rem',
+          padding: '2rem',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
+          marginBottom: '2rem',
+          animation: 'fadeInUp 0.6s ease-out',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            color: 'white',
+            textAlign: 'center',
+            marginBottom: '1.5rem'
+          }}>
+            ☀️ Real-Time Solar Tracking
+          </h2>
+          
+          <div style={{
+            position: 'relative',
+            height: '6rem',
+            background: 'linear-gradient(135deg, #60a5fa 0%, #93c5fd 50%, #60a5fa 100%)',
+            borderRadius: '9999px',
+            overflow: 'hidden',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '0.5rem',
+              left: '2rem',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#1e3a8a'
+            }}>
+              {new Date(new Date().setHours(6, 30, 0, 0)).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true})}
+            </div>
+            <div style={{
+              position: 'absolute',
+              top: '0.5rem',
+              right: '2rem',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#1e3a8a'
+            }}>
+              {new Date(new Date().setHours(18, 45, 0, 0)).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', hour12: true})}
+            </div>
+            
+            {/* Current time in the middle */}
+            <div style={{
+              position: 'absolute',
+              top: '0.5rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: '0.875rem',
+              fontWeight: '700',
+              color: '#1e3a8a',
+              backgroundColor: 'rgba(255, 255, 255, 0.3)',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '9999px'
+            }}>
+              {currentTime.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit', second:'2-digit', hour12: true})}
+            </div>
+            
+            {/* Sun position
+            <div style={{
+              position: 'absolute',
+              top: '0.75rem',
+              left: `${sunPosition}%`,
+              transform: 'translateX(-50%)',
+              transition: 'left 0.5s ease'
+            }}>
+              <div style={{
+                width: '2.5rem',
+                height: '2.5rem',
+                background: '#fcd34d',
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 20px rgba(252, 211, 77, 0.7)'
+              }}>
+                <Sun style={{ width: '1.5rem', height: '1.5rem', color: '#f59e0b' }} />
+              </div>
+            </div> */}
+            
+            <div style={{
+              textAlign: 'center',
+              position: 'absolute',
+              bottom: '0.75rem',
+              width: '100%',
+              fontWeight: '600',
+              color: '#1e3a8a',
+              fontSize: '1.25rem'
+            }}>
+              Daytime
+            </div>
+          </div>
+        </div>
+
+        {/* Battery Card */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '1.5rem',
+          padding: '2rem',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
+          marginBottom: '2rem',
+          animation: 'fadeInUp 0.7s ease-out',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{
+                width: '3.5rem',
+                height: '3.5rem',
+                borderRadius: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3))',
+                border: '1px solid rgba(16, 185, 129, 0.3)'
+              }}>
+                {isCharging ? (
+                  <BatteryCharging style={{ width: '1.75rem', height: '1.75rem', color: '#34d399' }} />
+                ) : (
+                  <Battery style={{ width: '1.75rem', height: '1.75rem', color: '#34d399' }} />
+                )}
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.375rem', fontWeight: '700', color: 'white', marginBottom: '0.25rem' }}>
+                  Battery Status
+                </h2>
+                <p style={{ fontSize: '0.875rem', color: '#9ca3af', lineHeight: '1.4' }}>
+                  {isCharging ? 'Currently charging' : 'Power supply status'}
+                </p>
+              </div>
+            </div>
+            <div style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              backgroundColor: isConnected ? '#10b981' : '#ef4444',
+              boxShadow: isConnected ? '0 0 10px rgba(16, 185, 129, 0.5)' : '0 0 10px rgba(239, 68, 68, 0.5)',
+              animation: 'pulse 2s infinite'
+            }}></div>
+          </div>
+
+          {/* Battery Level */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              marginBottom: '0.5rem'
+            }}>
+              <span style={{ color: 'white', fontWeight: '600' }}>Battery Level</span>
+              <span style={{ color: 'white', fontWeight: '700' }}>{batteryLevel.toFixed(0)}%</span>
+            </div>
+            <div style={{
+              height: '1.5rem',
+              background: 'rgba(0, 0, 0, 0.3)',
+              borderRadius: '9999px',
+              overflow: 'hidden',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <div style={{
+                height: '100%',
+                width: `${batteryLevel}%`,
+                background: isCharging 
+                  ? 'linear-gradient(90deg, #10b981, #34d399)' 
+                  : batteryLevel > 20 
+                    ? 'linear-gradient(90deg, #10b981, #34d399)' 
+                    : 'linear-gradient(90deg, #ef4444, #f87171)',
+                borderRadius: '9999px',
+                transition: 'width 0.5s ease',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                {isCharging && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
+                    animation: 'shimmer 1.5s infinite',
+                    backgroundSize: '200px 100%'
+                  }}></div>
+                )}
+              </div>
+            </div>
+            {isCharging && (
+              <div style={{ 
+                color: '#10b981', 
+                fontSize: '0.875rem', 
+                fontWeight: '600',
+                marginTop: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <BatteryCharging style={{ width: '1rem', height: '1rem' }} />
+                Battery charging
+              </div>
+            )}
+          </div>
+
+          {/* Battery History Graph */}
+          <div style={{
+            height: '12rem',
+            background: 'rgba(0, 0, 0, 0.25)',
+            borderRadius: '1rem',
+            padding: '1rem',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            marginBottom: '0.5rem'
+          }}>
+            <h3 style={{
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              marginBottom: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>
+              Battery Level Trend
+            </h3>
+            <div style={{ height: 'calc(100% - 30px)' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={batteryHistory}>
+                  <XAxis 
+                    dataKey="time" 
+                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                    tickFormatter={formatTime}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                    domain={[0, 100]}
+                    tickCount={6}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(0,0,0,0.8)', 
+                      border: 'none', 
+                      borderRadius: '8px',
+                      color: 'white'
+                    }}
+                    formatter={(value) => [`${value.toFixed(1)}%`, 'Battery']}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -698,6 +672,7 @@ const Dashboard = () => {
           <div className="footer-text">
             <p>🔄 Data updates automatically from Firebase Realtime Database</p>
             <p>📡 Connection status: {isConnected ? '✅ Connected' : '❌ Disconnected'}</p>
+            <p>🔋 Battery status: {isCharging ? '⚡ Charging' : batteryLevel > 20 ? '✅ Good' : '⚠️ Low'}</p>
           </div>
         </div>
       </div>
